@@ -36,7 +36,7 @@ const ControlledCurrencyInput: React.FC<Props> = ({
             <Form.Label htmlFor={name} {...labelProps}>
               {label}
             </Form.Label>
-            <InputGroup>
+            <InputGroup hasValidation>
               <InputGroup.Text>$</InputGroup.Text>
               <Form.Control
                 style={{ textAlign: "right" }}
@@ -56,10 +56,10 @@ const ControlledCurrencyInput: React.FC<Props> = ({
                 }
               />
               <InputGroup.Text>.00</InputGroup.Text>
+              <Form.Control.Feedback type="invalid">
+                {fieldState.error?.message}
+              </Form.Control.Feedback>
             </InputGroup>
-            <Form.Control.Feedback type="invalid">
-              {fieldState.error?.message}
-            </Form.Control.Feedback>
           </Form.Group>
         );
       }}
