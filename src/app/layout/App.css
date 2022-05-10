@@ -1,0 +1,12 @@
+a:hover {
+    color: white !important;
+}
+
+a {
+    color: rgb(255, 255, 255, 0.55);
+    text-decoration: none;
+}
+
+.border-white-50 {
+    border-color: rgba(255, 255, 255, 0.50) !important;
+}
