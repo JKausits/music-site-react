@@ -5,9 +5,10 @@ import {
   VenueDetailDto,
 } from "../../../app/dtos/Venues.dto";
 import { Button, Form, Modal } from "react-bootstrap";
-import { FormikHelpers, useFormik } from "formik";
 import ControlledInput from "../../../app/components/controlled-inputs/ControlledInput";
 import LoadingButton from "../../../app/components/buttons/LoadingButton";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 interface Props {
   isOpen: boolean;
   venue?: VenueDto | VenueDetailDto;
@@ -22,31 +23,34 @@ const VenueFormDialog: React.FC<Props> = ({
   onSubmit,
 }) => {
   //#region State
-  const formik = useFormik({
-    initialValues: new VenueRequestDto(venue),
-    validationSchema: VenueRequestDto.getSchema(),
-    validateOnBlur: true,
-    validateOnChange: true,
-    enableReinitialize: true,
-    onSubmit: async (values: VenueRequestDto, props: FormikHelpers<any>) => {
-      await onSubmit(values);
-      if (venue == null) props.resetForm({ values: new VenueRequestDto() });
-    },
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm({
+    defaultValues: new VenueRequestDto(venue),
+    resolver: yupResolver(VenueRequestDto.getSchema()),
+    mode: "all",
   });
-  const { resetForm } = formik;
   //#endregion
 
   //#region Handlers
+  const handleOnSubmit = handleSubmit(async (dto: VenueRequestDto) => {
+    await onSubmit(dto);
+    if (venue == null) reset(new VenueRequestDto());
+  });
+
   const handleClose = () => {
-    resetForm({ values: new VenueRequestDto(venue) });
+    reset(new VenueRequestDto(venue));
     onClose();
   };
   //#endregion
 
   //#region Effects
   useEffect(() => {
-    resetForm({ values: new VenueRequestDto(venue) });
-  }, [venue, resetForm]);
+    reset(new VenueRequestDto(venue));
+  }, [venue, reset]);
   //#endregion
 
   return (
@@ -58,21 +62,21 @@ const VenueFormDialog: React.FC<Props> = ({
       <Modal.Header>
         <Modal.Title>{venue ? "Update" : "Create"} Venue</Modal.Title>
       </Modal.Header>
-      <Form onSubmit={formik.handleSubmit}>
+      <Form onSubmit={handleOnSubmit}>
         <Modal.Body>
-          <ControlledInput name="name" label="Name" formik={formik} />
+          <ControlledInput name="name" label="Name" control={control} />
         </Modal.Body>
         <Modal.Footer>
           <Button
             onClick={handleClose}
-            disabled={formik.isSubmitting}
+            disabled={isSubmitting}
             variant="secondary"
           >
             Cancel
           </Button>
           <LoadingButton
             type="submit"
-            isLoading={formik.isSubmitting}
+            isLoading={isSubmitting}
             variant="primary"
           >
             Submit

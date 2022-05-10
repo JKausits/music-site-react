@@ -1,10 +1,11 @@
 import React from "react";
 import { UserLoginRequestDto } from "../../../app/dtos/Users.dto";
-import { useFormik } from "formik";
 import { Card, Col, Form, Row } from "react-bootstrap";
 import CardHeader from "react-bootstrap/CardHeader";
 import ControlledInput from "../../../app/components/controlled-inputs/ControlledInput";
 import LoadingButton from "../../../app/components/buttons/LoadingButton";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 interface Props {
   onSubmit(dto: UserLoginRequestDto): Promise<void>;
@@ -12,12 +13,14 @@ interface Props {
 
 const LoginUserForm: React.FC<Props> = ({ onSubmit }) => {
   //#region State
-  const formik = useFormik({
-    initialValues: new UserLoginRequestDto(),
-    validationSchema: UserLoginRequestDto.getSchema(),
-    validateOnBlur: true,
-    validateOnChange: true,
-    onSubmit,
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm({
+    defaultValues: new UserLoginRequestDto(),
+    resolver: yupResolver(UserLoginRequestDto.getSchema()),
+    mode: "all",
   });
   //#endregion
 
@@ -25,24 +28,24 @@ const LoginUserForm: React.FC<Props> = ({ onSubmit }) => {
     <Card>
       <CardHeader>Login</CardHeader>
       <Card.Body>
-        <Form onSubmit={formik.handleSubmit} noValidate>
+        <Form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Row className="mb-3">
             <ControlledInput
               groupProps={{ as: Col, className: "col-md-12" }}
-              formik={formik}
+              control={control}
               label={"Email"}
               name={"email"}
             />
             <ControlledInput
               groupProps={{ as: Col, className: "col-md-12" }}
-              formik={formik}
+              control={control}
               label={"Password"}
               name={"password"}
               controlProps={{ type: "password" }}
             />
             <Col md={12} className="d-grid mt-3">
               <LoadingButton
-                isLoading={formik.isSubmitting}
+                isLoading={isSubmitting}
                 type="submit"
                 variant="primary"
               >

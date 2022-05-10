@@ -6,11 +6,10 @@ import {
   FormLabelProps,
   InputGroup,
 } from "react-bootstrap";
-import { FormikProps } from "formik";
-import ControlledErrors from "./ControlledErrors";
+import { Control, Controller } from "react-hook-form";
 
 interface Props extends FormControlProps {
-  formik: FormikProps<any>;
+  control: Control<any>;
   label: React.ReactNode;
   name: string;
   controlProps?: FormControlProps;
@@ -19,43 +18,52 @@ interface Props extends FormControlProps {
 }
 
 const ControlledCurrencyInput: React.FC<Props> = ({
-  formik,
+  control,
   label,
   name,
   controlProps = {},
   groupProps = {},
   labelProps = {},
 }) => {
-  const { handleChange, handleBlur, touched, errors, values, submitCount } =
-    formik;
-
   return (
-    <Form.Group {...groupProps}>
-      <Form.Label htmlFor={name} {...labelProps}>
-        {label}
-      </Form.Label>
-      <InputGroup>
-        <InputGroup.Text>$</InputGroup.Text>
-        <Form.Control
-          style={{ textAlign: "right" }}
-          {...controlProps}
-          id={name}
-          value={values[name]}
-          onChange={(e) => {
-            const re = /^[0-9\b]+$/;
-            const { value } = e.currentTarget;
-
-            if (value === "" || re.test(value)) handleChange(e);
-          }}
-          onBlur={handleBlur}
-          isInvalid={(touched[name] || submitCount > 0) && !!errors[name]}
-        />
-        <InputGroup.Text>.00</InputGroup.Text>
-      </InputGroup>
-      <Form.Control.Feedback type="invalid">
-        <ControlledErrors errors={errors[name]} />
-      </Form.Control.Feedback>
-    </Form.Group>
+    <Controller
+      control={control}
+      name={name}
+      render={({ field, fieldState, formState }) => {
+        const { onChange } = field;
+        return (
+          <Form.Group {...groupProps}>
+            <Form.Label htmlFor={name} {...labelProps}>
+              {label}
+            </Form.Label>
+            <InputGroup>
+              <InputGroup.Text>$</InputGroup.Text>
+              <Form.Control
+                style={{ textAlign: "right" }}
+                {...controlProps}
+                {...field}
+                id={name}
+                name={name}
+                onChange={(e) => {
+                  const re = /^[0-9\b]+$/;
+                  const { value } = e.currentTarget;
+                  if (value === "" || re.test(value)) onChange(e);
+                }}
+                disabled={formState.isSubmitting}
+                isInvalid={
+                  (fieldState.isTouched || formState.submitCount > 0) &&
+                  !!fieldState.error
+                }
+              />
+              <InputGroup.Text>.00</InputGroup.Text>
+            </InputGroup>
+            <Form.Control.Feedback type="invalid">
+              {fieldState.error?.message}
+            </Form.Control.Feedback>
+          </Form.Group>
+        );
+      }}
+    />
   );
 };
 

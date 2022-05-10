@@ -1,12 +1,13 @@
 import React, { useEffect } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
-import { FormikHelpers, useFormik } from "formik";
 import ControlledInput from "../../../app/components/controlled-inputs/ControlledInput";
 import LoadingButton from "../../../app/components/buttons/LoadingButton";
 import { ShowDto, ShowRequestDto } from "../../../app/dtos/Shows.dto";
 import ControlledCurrencyInput from "../../../app/components/controlled-inputs/ControlledCurrencyInput";
 import { RequestStateDto } from "../../../app/dtos/RequestState.dto";
 import RequestAlert from "../../../app/components/alerts/RequestAlert";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 interface Props {
   isOpen: boolean;
   show?: ShowDto;
@@ -23,31 +24,34 @@ const ShowFormDialog: React.FC<Props> = ({
   onSubmit,
 }) => {
   //#region State
-  const formik = useFormik({
-    initialValues: new ShowRequestDto(show),
-    validationSchema: ShowRequestDto.getSchema(),
-    validateOnBlur: true,
-    validateOnChange: true,
-    enableReinitialize: true,
-    onSubmit: async (values: ShowRequestDto, props: FormikHelpers<any>) => {
-      await onSubmit(values);
-      if (show == null) props.resetForm({ values: new ShowRequestDto() });
-    },
+  const {
+    control,
+    reset,
+    formState: { isSubmitting },
+    handleSubmit,
+  } = useForm({
+    defaultValues: new ShowRequestDto(show),
+    resolver: yupResolver(ShowRequestDto.getSchema()),
+    mode: "all",
   });
-  const { resetForm } = formik;
   //#endregion
-
+  // console.log(values);
   //#region Handlers
+  const handleOnSubmit = handleSubmit(async (dto: ShowRequestDto) => {
+    await onSubmit(dto);
+    if (show == null) reset(new ShowRequestDto());
+  });
+
   const handleClose = () => {
-    resetForm({ values: new ShowRequestDto(show) });
+    reset(new ShowRequestDto(show));
     onClose();
   };
   //#endregion
 
   //#region Effects
   useEffect(() => {
-    resetForm({ values: new ShowRequestDto(show) });
-  }, [show, resetForm]);
+    reset(new ShowRequestDto(show));
+  }, [show, reset]);
   //#endregion
 
   return (
@@ -59,35 +63,39 @@ const ShowFormDialog: React.FC<Props> = ({
       <Modal.Header>
         <Modal.Title>{show ? "Update" : "Create"} Show</Modal.Title>
       </Modal.Header>
-      <Form onSubmit={formik.handleSubmit}>
+      <Form onSubmit={handleOnSubmit}>
         <RequestAlert requestState={requestState} />
         <Modal.Body>
-          <ControlledInput name="name" label="Name" formik={formik} />
+          <ControlledInput name="name" label="Name" control={control} />
           <ControlledInput
             name="startAt"
             label="Start At"
             controlProps={{ type: "datetime-local" }}
-            formik={formik}
+            control={control}
           />
           <ControlledInput
             name="endAt"
             label="End At"
             controlProps={{ type: "datetime-local" }}
-            formik={formik}
+            control={control}
           />
-          <ControlledCurrencyInput name="rate" label="Price" formik={formik} />
+          <ControlledCurrencyInput
+            name="rate"
+            label="Price"
+            control={control}
+          />
         </Modal.Body>
         <Modal.Footer>
           <Button
             onClick={handleClose}
-            disabled={formik.isSubmitting}
+            disabled={isSubmitting}
             variant="secondary"
           >
             Cancel
           </Button>
           <LoadingButton
             type="submit"
-            isLoading={formik.isSubmitting}
+            isLoading={isSubmitting}
             variant="primary"
           >
             Submit
