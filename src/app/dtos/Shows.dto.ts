@@ -16,7 +16,7 @@ export class ShowRequestDto {
   name: string = "";
   startAt: string = ValueFormatter.formDateTimeFormString(new Date());
   endAt: string = ValueFormatter.formDateTimeFormString(new Date());
-  rate: number = 0;
+  rate: number | string = "";
 
   constructor(show?: ShowDto) {
     if (show) {
@@ -30,21 +30,21 @@ export class ShowRequestDto {
   public static getSchema() {
     return Yup.object().shape({
       name: Yup.string().label("Event Name").required().max(255),
-      startAt: Yup.date()
-        .label("Start At")
-        .nullable()
-        .transform((curr, orig) => (orig === "" ? null : curr))
-        .required(),
-      endAt: Yup.date()
+      startAt: Yup.string().label("Start At").required(),
+      endAt: Yup.string()
         .label("End At")
-        .nullable()
-        .transform((curr, orig) => (orig === "" ? null : curr))
         .required()
-        .when(
-          "startAt",
-          (startAt, yup) =>
-            startAt != null &&
-            yup.min(startAt, "End At cannot be before Started At.")
+        .test(
+          "date-check",
+          "End At cannot be before Started At.",
+          function (value) {
+            if (value == null || value === "") return true;
+
+            if (this.parent.startAt == null || this.parent.startAt === "")
+              return true;
+
+            return new Date(this.parent.startAt) <= new Date(value);
+          }
         ),
       rate: Yup.number()
         .label("Price")

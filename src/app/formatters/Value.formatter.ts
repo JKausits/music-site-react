@@ -15,7 +15,7 @@ export class ValueFormatter {
   }
 
   public static formDateTimeFormString(value: Date) {
-    return moment(value).format("YYYY-MM-DDThh:mm");
+    return moment(value).format("YYYY-MM-DD[T]HH:mm");
   }
 
   public static formatDate(value: Date) {
