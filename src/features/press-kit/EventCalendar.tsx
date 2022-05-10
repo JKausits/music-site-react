@@ -14,14 +14,14 @@ const styles = (
         height: 118px;
     }
 
-@media only screen and (max-width: 391px) {
+@media only screen and (max-width: 440px) {
   #calendar table th {
-    width: 46px;
+    width: 70px !important;
     font-size: 0.55rem;
 }
 
 #calendar table td {
-  height: 46px;
+  height: 54px;
   font-size: 0.6rem;
 }
 
@@ -168,7 +168,7 @@ const EventCalendar = () => {
   const renderControls = () => {
     return (
       <span
-        className="d-flex justify-content-between align-items-center px-1 py-3"
+        className="d-flex justify-content-between align-items-center px-1 py-3 w-100"
         id="calendar-controls"
       >
         <div
